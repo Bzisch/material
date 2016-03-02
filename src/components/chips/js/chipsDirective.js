@@ -65,6 +65,8 @@
    * @param {string=} placeholder Placeholder text that will be forwarded to the input.
    * @param {string=} secondary-placeholder Placeholder text that will be forwarded to the input,
    *    displayed when there is at least one item in the list
+   * @param {boolean=} md-removable Enables or disables the deletion of chips through the
+   *    removal icon or the Delete/Backspace key. Defaults to true.
    * @param {boolean=} readonly Disables list manipulation (deleting or adding list items), hiding
    *    the input and delete buttons. If no `ng-model` is provided, the chips will automatically be
    *    marked as readonly.
@@ -124,7 +126,9 @@
   var MD_CHIPS_TEMPLATE = '\
       <md-chips-wrap\
           ng-keydown="$mdChipsCtrl.chipKeydown($event)"\
-          ng-class="{ \'md-focused\': $mdChipsCtrl.hasFocus(), \'md-readonly\': !$mdChipsCtrl.ngModelCtrl || $mdChipsCtrl.readonly}"\
+          ng-class="{ \'md-focused\': $mdChipsCtrl.hasFocus(), \
+                      \'md-readonly\': !$mdChipsCtrl.ngModelCtrl || $mdChipsCtrl.readonly,\
+                      \'md-removable\': $mdChipsCtrl.removable }"\
           class="md-chips">\
         <md-chip ng-repeat="$chip in $mdChipsCtrl.items"\
             index="{{$index}}"\
@@ -135,7 +139,7 @@
               ng-click="!$mdChipsCtrl.readonly && $mdChipsCtrl.focusChip($index)"\
               ng-focus="!$mdChipsCtrl.readonly && $mdChipsCtrl.selectChip($index)"\
               md-chip-transclude="$mdChipsCtrl.chipContentsTemplate"></div>\
-          <div ng-if="!$mdChipsCtrl.readonly"\
+          <div ng-if="$mdChipsCtrl.removable"\
                class="_md-chip-remove-container"\
                md-chip-transclude="$mdChipsCtrl.chipRemoveTemplate"></div>\
         </md-chip>\
@@ -163,7 +167,7 @@
   var CHIP_REMOVE_TEMPLATE = '\
       <button\
           class="_md-chip-remove"\
-          ng-if="!$mdChipsCtrl.readonly"\
+          ng-if="$mdChipsCtrl.removable"\
           ng-click="$mdChipsCtrl.removeChipAndFocusInput($$replacedScope.$index)"\
           type="button"\
           aria-hidden="true"\
@@ -198,6 +202,7 @@
       compile: compile,
       scope: {
         readonly: '=readonly',
+        removable: '=mdRemovable',
         placeholder: '@',
         mdEnableChipEdit: '@',
         secondaryPlaceholder: '@',
@@ -248,6 +253,11 @@
       attr['$mdUserTemplate'] = null;
 
       var chipTemplate = getTemplateByQuery('md-chips>md-chip-template');
+
+      // Set removable to true by default.
+      if (!angular.isDefined(attr.mdRemovable)) {
+        attr.$set('mdRemovable', 'true');
+      }
 
       // Set the chip remove, chip contents and chip input templates. The link function will put
       // them on the scope for transclusion later.

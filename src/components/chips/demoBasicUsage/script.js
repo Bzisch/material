@@ -8,6 +8,7 @@
     var self = this;
 
     self.readonly = false;
+    self.removable = true;
 
     // Lists of fruit names and Vegetable objects
     self.fruitNames = ['Apple', 'Banana', 'Orange'];

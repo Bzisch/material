@@ -20,6 +20,8 @@ describe('<md-chips>', function() {
     '<md-chips ng-model="items" readonly="true">' +
     '  <md-autocomplete md-items="item in [\'hi\', \'ho\', \'he\']"></md-autocomplete>' +
     '</md-chips>';
+  var CHIP_NOT_REMOVABLE_TEMPLATE =
+    '<md-chips ng-model="items" readonly="true" md-removable="false"></md-chips>';
 
   afterEach(function() {
     attachedElements.forEach(function(element) {
@@ -254,6 +256,105 @@ describe('<md-chips>', function() {
         expect(scope.items.length).toBe(4);
         expect(scope.items[3].name).toBe('Grape');
         expect(scope.items[3].uppername).toBe('GRAPE');
+      });
+
+      describe('when removable', function() {
+
+          it('should not append the input div when not removable and readonly is enabled', function() {
+            var element = buildChips(CHIP_NOT_REMOVABLE_TEMPLATE);
+            var wrap = element.children();
+            var controller = element.controller("mdChips");
+
+            expect(wrap.hasClass("md-removable")).toBe(false);
+            expect(controller.removable).toBe(false);
+
+            var containers = wrap[0].querySelectorAll(".md-chip-input-container");
+
+            expect(containers.length).toBe(0);
+
+            var removeContainer = wrap[0].querySelector('.md-chip-remove-container');
+            expect(removeContainer).not.toBeTruthy();
+          });
+
+        it('should not remove chip through the backspace/delete key when removable is set to false', inject(function($mdConstant) {
+          var element = buildChips(CHIP_NOT_REMOVABLE_TEMPLATE);
+          var wrap = element.find('md-chips-wrap');
+          var controller = element.controller("mdChips");
+          var chips = getChipElements(element);
+
+          expect(wrap.hasClass("md-removable")).toBe(false);
+          expect(controller.removable).toBe(false);
+
+          controller.selectChip(0);
+
+          wrap.triggerHandler({
+            type: 'keydown',
+            keyCode: $mdConstant.KEY_CODE.BACKSPACE
+          });
+
+          var updatedChips = getChipElements(element);
+
+          expect(chips.length).toBe(updatedChips.length);
+        }));
+
+        it('should remove a chip by default through the backspace/delete key', inject(function($mdConstant) {
+          var element = buildChips(BASIC_CHIP_TEMPLATE);
+          var wrap = element.find('md-chips-wrap');
+          var controller = element.controller("mdChips");
+          var chips = getChipElements(element);
+
+          controller.selectChip(0);
+
+          wrap.triggerHandler({
+            type: 'keydown',
+            keyCode: $mdConstant.KEY_CODE.BACKSPACE
+          });
+
+          var updatedChips = getChipElements(element);
+
+          expect(chips.length).not.toBe(updatedChips.length);
+        }));
+
+        it('should set removable to true by default', function() {
+          var element = buildChips(BASIC_CHIP_TEMPLATE);
+          var wrap = element.children();
+          var controller = element.controller('mdChips');
+
+          expect(wrap.hasClass('md-removable')).toBe(true);
+          expect(controller.removable).toBe(true);
+
+          var containers = wrap[0].querySelectorAll("._md-chip-input-container");
+          expect(containers.length).not.toBe(0);
+
+          var removeContainer = wrap[0].querySelector('._md-chip-remove-container');
+          expect(removeContainer).toBeTruthy();
+        });
+
+        it('should append dynamically the remove button', function() {
+          var template = '<md-chips ng-model="items" readonly="true" md-removable="removable"></md-chips>';
+
+          scope.removable = false;
+
+          var element = buildChips(template);
+          var wrap = element.children();
+          var controller = element.controller("mdChips");
+
+          expect(wrap.hasClass("md-removable")).toBe(false);
+          expect(controller.removable).toBe(false);
+
+          var containers = wrap[0].querySelectorAll("._md-chip-remove-container");
+          expect(containers.length).toBe(0);
+
+          scope.removable = true;
+          scope.$apply();
+
+          expect(wrap.hasClass("md-removable")).toBe(true);
+          expect(controller.removable).toBe(true);
+
+          containers = wrap[0].querySelector("._md-chip-remove-container");
+          expect(containers).toBeTruthy();
+        });
+
       });
 
       describe('when readonly', function() {

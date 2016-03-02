@@ -106,7 +106,6 @@ function MdChipsCtrl ($scope, $mdConstant, $log, $element, $timeout, $mdUtil) {
    * after selecting a chip from the list.
    * @type {boolean}
    */
-  this.useOnSelect = false;
 }
 
 /**
@@ -186,6 +185,8 @@ MdChipsCtrl.prototype.chipKeydown = function (event) {
     case this.$mdConstant.KEY_CODE.DELETE:
       if (this.selectedChip < 0) return;
       event.preventDefault();
+      // Cancel the delete action only after the event cancel. Otherwise the page will go back.
+      if (!this.removable) return;
       this.removeAndSelectAdjacentChip(this.selectedChip);
       break;
     case this.$mdConstant.KEY_CODE.LEFT_ARROW:
